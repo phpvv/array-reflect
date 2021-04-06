@@ -204,6 +204,7 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
     public function int(string|int $key): ?int {
         $scalar = $this->scalar($key);
         if (is_int($scalar) || $scalar === null) return $scalar;
+        if ($scalar === '') return null;
 
         $int = (int)$scalar;
 
@@ -231,6 +232,7 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
     public function float(string|int $key): ?float {
         $scalar = $this->scalar($key);
         if (is_float($scalar) || $scalar === null) return $scalar;
+        if ($scalar === '') return null;
 
         $float = (float)$scalar;
 
@@ -258,9 +260,10 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
     public function bool(string|int $key): ?bool {
         $scalar = $this->scalar($key);
         if (is_bool($scalar) || $scalar === null) return $scalar;
+        if ($scalar === '') return null;
 
         $str = (string)$scalar;
-        if ($str !== '' && $str !== '0' && $str !== '1') {
+        if ($str !== '0' && $str !== '1') {
             throw $this->createGetterTypeException("Field \"$key\" is not bool-convertible");
         }
 

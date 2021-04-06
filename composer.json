@@ -1,7 +1,6 @@
 {
     "name": "phpvv/array-reflect",
     "description": "A simple library to help modify and get content of arrays",
-    "version": "0.1.0",
     "type": "library",
     "license": "MIT",
     "authors": [
