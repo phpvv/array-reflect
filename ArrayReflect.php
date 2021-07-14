@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 /*
  * This file is part of the VV package.
@@ -10,15 +12,12 @@
  */
 namespace VV\Utils;
 
-use JetBrains\PhpStorm\Pure;
-
 /**
  * Class ArrayReflect
  */
-class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable {
-
+class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable
+{
     private ?array $array;
-
     private ?string $getterTypeExceptionClass = null;
 
     /**
@@ -26,8 +25,11 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @param array|null $array
      */
-    public function __construct(&$array = null) {
-        if (!is_array($array)) $array = [];
+    public function __construct(&$array = null)
+    {
+        if (!is_array($array)) {
+            $array = [];
+        }
         $this->array = &$array;
     }
 
@@ -36,10 +38,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return bool
      */
-    #[Pure]
-    public function has(mixed ...$values): bool {
+    public function has(mixed ...$values): bool
+    {
         foreach ($values as $v) {
-            if (!in_array($v, $this->array, true)) return false;
+            if (!in_array($v, $this->array, true)) {
+                return false;
+            }
         }
 
         return true;
@@ -50,12 +54,14 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return bool
      */
-    #[Pure]
-    public function hasKey(string|int ...$keys): bool {
+    public function hasKey(string|int ...$keys): bool
+    {
         $array = $this->array;
 
         foreach ($keys as $k) {
-            if (!array_key_exists($k, $array)) return false;
+            if (!array_key_exists($k, $array)) {
+                return false;
+            }
         }
 
         return true;
@@ -68,8 +74,11 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return mixed
      */
-    public function get(string|int|array $key = null, mixed $default = null, &$found = null): mixed {
-        if ($key === null) return $this->array;
+    public function get(string|int|array $key = null, mixed $default = null, &$found = null): mixed
+    {
+        if ($key === null) {
+            return $this->array;
+        }
         if (!is_array($key)) {
             $array = $this->array;
 
@@ -85,7 +94,9 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
             }
 
             $results[] = $self->get($v, $default, $f);
-            if (!$f) $found = false;
+            if (!$f) {
+                $found = false;
+            }
         }
 
         return $results;
@@ -97,7 +108,8 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return array
      */
-    public function aget(array $keys, mixed ...$defaults): array {
+    public function aget(array $keys, mixed ...$defaults): array
+    {
         $arrays = [$this->array, ...$defaults, null];
 
         $total = [];
@@ -107,11 +119,15 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
             }
 
             $total += $arr;
-            if ($notarr) break;
+            if ($notarr) {
+                break;
+            }
         }
 
         $result = [];
-        foreach ($keys as $k) $result[$k] = $total[$k];
+        foreach ($keys as $k) {
+            $result[$k] = $total[$k];
+        }
 
         return $result;
     }
@@ -123,11 +139,11 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return mixed
      */
-    public function xget(string|array ...$path): mixed {
+    public function xget(string|array ...$path): mixed
+    {
         $cur = $this;
-        $key = null;
         $found = null;
-        foreach ($path as $i => $key) {
+        foreach ($path as $key) {
             if (!$cur instanceof self) {
                 if (!is_iterable($cur)) {
                     $cur = null;
@@ -138,8 +154,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
             }
 
             $cur = $cur->get($key, null, $found);
-            if (is_array($key)) $found = true;
-            if (!$found) break;
+            if (is_array($key)) {
+                $found = true;
+            }
+            if (!$found) {
+                break;
+            }
         }
         if ($found === false && is_array($key = end($path))) {
             return array_fill(0, count($key), null);
@@ -153,10 +173,13 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return mixed
      */
-    public function &ref(string ...$path): mixed {
+    public function &ref(string ...$path): mixed
+    {
         $cur = &$this->array;
         foreach ($path as $key) {
-            if (!is_array($cur)) $cur = [];
+            if (!is_array($cur)) {
+                $cur = [];
+            }
             $cur = &$cur[$key];
         }
 
@@ -168,9 +191,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return self
      */
-    public function iref(string ...$path): self {
+    public function iref(string ...$path): self
+    {
         $ref = &$this->ref(...$path);
-        if ($ref instanceof self) return $ref;
+        if ($ref instanceof self) {
+            return $ref;
+        }
 
         return new self($ref);
     }
@@ -182,16 +208,24 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return string|null
      */
-    public function string(string|int $key, bool $trim = true): ?string {
+    public function string(string|int $key, bool $trim = true): ?string
+    {
         $scalar = $this->scalar($key);
-        if (is_string($scalar) || $scalar === null) return $scalar;
-
-        if (is_bool($scalar)) {
-            throw $this->createGetterTypeException("Field \"$key\" is not string-convertible");
+        if ($scalar === null) {
+            return null;
         }
 
-        $scalar = (string)$scalar;
-        if ($trim) $scalar = trim($scalar);
+        if (!is_string($scalar)) {
+            if (is_int($scalar) || is_float($scalar)) {
+                $scalar = (string)$scalar;
+            } else {
+                throw $this->createGetterTypeException("Field \"$key\" is not string-convertible");
+            }
+        }
+
+        if ($trim) {
+            return trim($scalar);
+        }
 
         return $scalar;
     }
@@ -201,18 +235,27 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return int|null
      */
-    public function int(string|int $key): ?int {
+    public function int(string|int $key): ?int
+    {
         $scalar = $this->scalar($key);
-        if (is_int($scalar) || $scalar === null) return $scalar;
-        if ($scalar === '') return null;
+        if (is_int($scalar) || $scalar === null) {
+            return $scalar;
+        }
+        if ($scalar === '') {
+            return null;
+        }
 
         $int = (int)$scalar;
 
         $error = (function () use ($scalar, $int) {
-            if (is_bool($scalar)) return true;
+            if (is_bool($scalar)) {
+                return true;
+            }
 
             $scalar = (string)$scalar;
-            if (!preg_match('/^\d+$/', $scalar)) return true;
+            if (!preg_match('/^\d+$/', $scalar)) {
+                return true;
+            }
 
             return (string)$int !== preg_replace('/^0+(?=.)/', '', $scalar);
         })(); //@codeCoverageIgnore
@@ -229,18 +272,27 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return float|null
      */
-    public function float(string|int $key): ?float {
+    public function float(string|int $key): ?float
+    {
         $scalar = $this->scalar($key);
-        if (is_float($scalar) || $scalar === null) return $scalar;
-        if ($scalar === '') return null;
+        if (is_float($scalar) || $scalar === null) {
+            return $scalar;
+        }
+        if ($scalar === '') {
+            return null;
+        }
 
         $float = (float)$scalar;
 
         $error = (function () use ($scalar, $float) {
-            if (is_bool($scalar)) return true;
+            if (is_bool($scalar)) {
+                return true;
+            }
 
             $scalar = (string)$scalar;
-            if (!preg_match('/^\d+(\.\d+)?$/', $scalar)) return true;
+            if (!preg_match('/^\d+(\.\d+)?$/', $scalar)) {
+                return true;
+            }
 
             return false;
         })(); //@codeCoverageIgnore
@@ -257,10 +309,15 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return bool|null
      */
-    public function bool(string|int $key): ?bool {
+    public function bool(string|int $key): ?bool
+    {
         $scalar = $this->scalar($key);
-        if (is_bool($scalar) || $scalar === null) return $scalar;
-        if ($scalar === '') return null;
+        if (is_bool($scalar) || $scalar === null) {
+            return $scalar;
+        }
+        if ($scalar === '') {
+            return null;
+        }
 
         $str = (string)$scalar;
         if ($str !== '0' && $str !== '1') {
@@ -275,7 +332,8 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return string|int|float|bool|null
      */
-    public function scalar(string|int $key): string|int|float|bool|null {
+    public function scalar(string|int $key): string|int|float|bool|null
+    {
         $value = $this->get($key);
         if (!is_scalar($value) && $value !== null) {
             throw $this->createGetterTypeException("Field \"$key\" is not scalar");
@@ -292,7 +350,8 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return array|null
      */
-    public function array(string|int $key): ?array {
+    public function array(string|int $key): ?array
+    {
         $value = $this->get($key);
         if (!is_array($value) && $value !== null) {
             throw $this->createGetterTypeException("Field \"$key\" is not array");
@@ -306,8 +365,11 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return ArrayReflect|null
      */
-    public function arrayReflect(string|int $key): ?self {
-        if (!$array = $this->array($key)) return null;
+    public function arrayReflect(string|int $key): ?self
+    {
+        if (!$array = $this->array($key)) {
+            return null;
+        }
 
         return $this->createLikeThis($array);
     }
@@ -317,10 +379,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return string[]
      */
-    public function stringIterator(string|int $key = null): iterable {
+    public function stringIterator(string|int $key = null): iterable
+    {
         return $this->createTypedIterator(function (self $ref, $k) {
             return $ref->string($k);
-        }, $key);
+        },
+            $key);
     }
 
     /**
@@ -328,10 +392,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return int[]
      */
-    public function intIterator(string|int $key = null): iterable {
+    public function intIterator(string|int $key = null): iterable
+    {
         return $this->createTypedIterator(function (self $ref, $k) {
             return $ref->int($k);
-        }, $key);
+        },
+            $key);
     }
 
     /**
@@ -339,10 +405,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return float[]
      */
-    public function floatIterator(string|int $key = null): iterable {
+    public function floatIterator(string|int $key = null): iterable
+    {
         return $this->createTypedIterator(function (self $ref, $k) {
             return $ref->float($k);
-        }, $key);
+        },
+            $key);
     }
 
     /**
@@ -350,10 +418,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return bool[]
      */
-    public function boolIterator(string|int $key = null): iterable {
+    public function boolIterator(string|int $key = null): iterable
+    {
         return $this->createTypedIterator(function (self $ref, $k) {
             return $ref->bool($k);
-        }, $key);
+        },
+            $key);
     }
 
     /**
@@ -361,10 +431,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return array string[]|int[]|float[]|bool[]|null[]
      */
-    public function scalarIterator(string|int $key = null): iterable {
+    public function scalarIterator(string|int $key = null): iterable
+    {
         return $this->createTypedIterator(function (self $ref, $k) {
             return $ref->scalar($k);
-        }, $key);
+        },
+            $key);
     }
 
     /**
@@ -372,10 +444,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return array[]
      */
-    public function arrayIterator(string|int $key = null): iterable {
+    public function arrayIterator(string|int $key = null): iterable
+    {
         return $this->createTypedIterator(function (self $ref, $k) {
             return $ref->array($k);
-        }, $key);
+        },
+            $key);
     }
 
     /**
@@ -383,10 +457,12 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return self[]
      */
-    public function arrayReflectIterator(string|int $key = null): iterable {
+    public function arrayReflectIterator(string|int $key = null): iterable
+    {
         return $this->createTypedIterator(function (self $ref, $k) {
             return $ref->arrayReflect($k);
-        }, $key);
+        },
+            $key);
     }
 
     /**
@@ -395,7 +471,8 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return $this
      */
-    public function set(string|int|array $key, $value = null): self {
+    public function set(string|int|array $key, mixed $value = null): self
+    {
         if (is_array($key)) {
             $this->array = $key;
         } else {
@@ -405,7 +482,8 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
         return $this;
     }
 
-    public function push(...$values): self {
+    public function push(...$values): self
+    {
         $array = &$this->array;
         foreach ($values as $v) {
             $array[] = $v;
@@ -415,7 +493,8 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
     }
 
     /** @noinspection PhpPureAttributeCanBeAddedInspection */
-    public function merge(array $value, bool $recursive = false): self {
+    public function merge(array $value, bool $recursive = false): self
+    {
         $array = &$this->array;
         if ($recursive) {
             $array = array_merge_recursive($array, $value);
@@ -426,48 +505,57 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
         return $this;
     }
 
-    public function unset(string|int ...$keys): self {
+    public function unset(string|int ...$keys): self
+    {
         $array = &$this->array;
-        foreach ($keys as $key) unset($array[$key]);
+        foreach ($keys as $key) {
+            unset($array[$key]);
+        }
 
         return $this;
     }
 
-    public function clear(): self {
+    public function clear(): self
+    {
         $this->array = [];
 
         return $this;
     }
 
-    public function isEmpty(): bool {
+    public function isEmpty(): bool
+    {
         return empty($this->array);
     }
 
-    #[Pure]
-    public function length(): int {
+    public function length(): int
+    {
         return count($this->array);
     }
 
     /**
      * @inheritdoc
      */
-    public function getIterator(): iterable {
-        foreach ($this->array as $k => $v) yield $k => $v;
+    public function getIterator(): iterable
+    {
+        foreach ($this->array as $k => $v) {
+            yield $k => $v;
+        }
     }
 
     /**
      * @inheritdoc
      */
-    public function jsonSerialize() {
+    public function jsonSerialize()
+    {
         return $this->array;
     }
 
     /**
      * @inheritdoc
      */
-    #[Pure]
-    public function count(): int {
-        return \count($this->array);
+    public function count(): int
+    {
+        return count($this->array);
     }
 
     /**
@@ -475,7 +563,8 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return $this
      */
-    public function setGetterTypeExceptionClass(?string $class): self {
+    public function setGetterTypeExceptionClass(?string $class): self
+    {
         $this->getterTypeExceptionClass = $class;
 
         return $this;
@@ -486,26 +575,33 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return \RuntimeException
      */
-    private function createGetterTypeException(string $message): mixed {
-        if ($class = $this->getterTypeExceptionClass) return new $class($message);
+    private function createGetterTypeException(string $message): mixed
+    {
+        if ($class = $this->getterTypeExceptionClass) {
+            return new $class($message);
+        }
 
         return new \UnexpectedValueException($message);
     }
 
-    private function createLikeThis($array): self {
+    private function createLikeThis($array): self
+    {
         return ArrayReflect::cast($array)
             ->setGetterTypeExceptionClass($this->getterTypeExceptionClass);
     }
 
     /**
      * @param callable        $clbk
-     * @param string|int|null $key
+     * @param int|string|null $key
      *
      * @return iterable
      */
-    private function createTypedIterator(callable $clbk, $key = null): iterable {
+    private function createTypedIterator(callable $clbk, int|string $key = null): iterable
+    {
         $ref = $key ? $this->arrayReflect($key) : $this;
-        if (!$ref) return;
+        if (!$ref) {
+            return;
+        }
 
         foreach ($ref->array as $k => $v) {
             yield $k => $clbk($ref, $k);
@@ -517,8 +613,11 @@ class ArrayReflect implements \IteratorAggregate, \JsonSerializable, \Countable 
      *
      * @return self
      */
-    public static function cast(mixed $array): static {
-        if ($array instanceof self) return $array;
+    public static function cast(mixed $array): static
+    {
+        if ($array instanceof self) {
+            return $array;
+        }
         if ($array instanceof \Traversable) {
             $array = iterator_to_array($array);
         } elseif (!is_array($array)) {

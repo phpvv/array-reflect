@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 /*
  * This file is part of the VV package.
@@ -13,15 +15,13 @@ namespace VV\Utils;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \VV\Utils\ArrayReflect
+ * @covers \VV\Utils\ArrayReflect
  */
-class ArrayReflectTest extends TestCase {
-
-    /**
-     * @covers ::__construct
-     */
-    public function testConstruct() {
-        $testVals = [null, false, true, 0, 1, '', 'foo', new \stdClass];
+class ArrayReflectTest extends TestCase
+{
+    public function testConstruct()
+    {
+        $testVals = [null, false, true, 0, 1, '', 'foo', new \stdClass()];
         foreach ($testVals as $k => $v) {
             new ArrayReflect($v);
             $this->assertSame([], $v, "key: $k");
@@ -32,12 +32,8 @@ class ArrayReflectTest extends TestCase {
         $this->assertSame($origarr, $arr);
     }
 
-    /**
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::get
-     */
-    public function testGet() {
+    public function testGet()
+    {
         $arr = self::baseTestArray();
         $reflect = ArrayReflect::cast($arr);
 
@@ -96,12 +92,8 @@ class ArrayReflectTest extends TestCase {
         );
     }
 
-    /**
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::aget
-     */
-    public function testAget() {
+    public function testAget()
+    {
         $arr = self::baseTestArray();
         $reflect = ArrayReflect::cast($arr);
 
@@ -130,7 +122,8 @@ class ArrayReflectTest extends TestCase {
                 'keyNone1' => 1,
                 'keyNone2' => 3,
             ],
-            $reflect->aget(['key1', 'keyNone', 'keyNone1', 'keyNone2'],
+            $reflect->aget(
+                ['key1', 'keyNone', 'keyNone1', 'keyNone2'],
                 [
                     'keyNone' => 0,
                 ],
@@ -142,15 +135,8 @@ class ArrayReflectTest extends TestCase {
         );
     }
 
-    /**
-     * @covers ::xget
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::createLikeThis
-     * @covers ::get
-     * @covers ::setGetterTypeExceptionClass
-     */
-    public function testXget() {
+    public function testXget()
+    {
         $arr = self::baseTestArray();
         $reflect = ArrayReflect::cast($arr);
 
@@ -175,12 +161,8 @@ class ArrayReflectTest extends TestCase {
         );
     }
 
-    /**
-     * @covers ::has
-     * @covers ::cast
-     * @covers ::__construct
-     */
-    public function testHas() {
+    public function testHas()
+    {
         $arr = self::baseTestArray();
         $reflect = ArrayReflect::cast($arr);
 
@@ -197,12 +179,8 @@ class ArrayReflectTest extends TestCase {
         $this->assertFalse($reflect->has('val2', 3, false, null, 'i1'));
     }
 
-    /**
-     * @covers ::hasKey
-     * @covers ::cast
-     * @covers ::__construct
-     */
-    public function testHasKey() {
+    public function testHasKey()
+    {
         $arr = self::baseTestArray();
         $reflect = ArrayReflect::cast($arr);
 
@@ -216,11 +194,8 @@ class ArrayReflectTest extends TestCase {
         $this->assertFalse($reflect->hasKey('key1', 'keyNone', 'node2'));
     }
 
-    /**
-     * @covers ::__construct
-     * @covers ::ref
-     */
-    public function testRef() {
+    public function testRef()
+    {
         $arr = [];
         $reflect = new ArrayReflect($arr);
 
@@ -240,12 +215,8 @@ class ArrayReflectTest extends TestCase {
         $this->assertSame(3, $arr['k1']['k2']['k3']);
     }
 
-    /**
-     * @covers ::set
-     * @covers ::__construct
-     * @covers ::get
-     */
-    public function testSet() {
+    public function testSet()
+    {
         $arr = [];
         $reflect = new ArrayReflect($arr);
 
@@ -259,13 +230,8 @@ class ArrayReflectTest extends TestCase {
         $this->assertSame(['qwe', 'rty'], $reflect->get());
     }
 
-    /**
-     * @covers ::__construct
-     * @covers ::iref
-     * @covers ::set
-     * @covers ::ref
-     */
-    public function testIref() {
+    public function testIref()
+    {
         $arr = [];
         $reflect = new ArrayReflect($arr);
 
@@ -277,7 +243,8 @@ class ArrayReflectTest extends TestCase {
         $this->assertSame('v3', $arr['k1']['k2']['k3']);
     }
 
-    public function typeDataProvider(): array {
+    public function typeDataProvider(): array
+    {
         return [
             [null, ['scalar', 'string', 'int', 'float', 'bool', 'array', 'arrayReflect']],
 
@@ -291,7 +258,7 @@ class ArrayReflectTest extends TestCase {
             [false, ['scalar', 'bool']],
             [[], ['array', 'arrayReflect']],
             [[123, 'qwe', 'rty' => 'asd'], ['array', 'arrayReflect']],
-            [new \stdClass, []],
+            [new \stdClass(), []],
             [STDOUT, []],
         ];
     }
@@ -299,120 +266,89 @@ class ArrayReflectTest extends TestCase {
     /**
      * @dataProvider typeDataProvider
      *
-     * @param $val
-     * @param $availableMethods
-     *
-     * @covers ::scalar
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::get
-     * @covers ::createGetterTypeException
+     * @param       $val
+     * @param array $availableMethods
      */
-    public function testScalar($val, array $availableMethods) {
+    public function testScalar($val, array $availableMethods)
+    {
         $this->runTypeTest($val, $availableMethods, 'scalar');
+    }
+
+    public function testString()
+    {
+        $reflect = ArrayReflect::cast(self::baseTestArray());
+
+        $this->assertSame('', $reflect->string('space'));
+        $this->assertSame('val1', $reflect->string('key1'));
+        $this->assertSame('i0', $reflect->string(0));
+        $this->assertSame('3', $reflect->string('key3'));
+        $this->assertSame('5.5', $reflect->string('key5.5'));
+        $this->assertNull($reflect->string('unknown'));
     }
 
     /**
      * @dataProvider typeDataProvider
      *
-     * @param $val
-     * @param $availableMethods
-     *
-     * @covers ::string
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::get
-     * @covers ::scalar
-     * @covers ::createGetterTypeException
+     * @param       $val
+     * @param array $availableMethods
      */
-    public function testString($val, array $availableMethods) {
+    public function testStringTypes($val, array $availableMethods)
+    {
         $this->runTypeTest($val, $availableMethods, 'string');
     }
 
     /**
      * @dataProvider typeDataProvider
      *
-     * @param $val
-     * @param $availableMethods
-     *
-     * @covers ::int
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::get
-     * @covers ::scalar
-     * @covers ::createGetterTypeException
+     * @param       $val
+     * @param array $availableMethods
      */
-    public function testInt($val, array $availableMethods) {
+    public function testIntTypes($val, array $availableMethods)
+    {
         $this->runTypeTest($val, $availableMethods, 'int');
     }
 
     /**
      * @dataProvider typeDataProvider
      *
-     * @param $val
-     * @param $availableMethods
-     *
-     * @covers ::float
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::get
-     * @covers ::scalar
-     * @covers ::createGetterTypeException
+     * @param       $val
+     * @param array $availableMethods
      */
-    public function testFloat($val, array $availableMethods) {
+    public function testFloatTypes($val, array $availableMethods)
+    {
         $this->runTypeTest($val, $availableMethods, 'float');
     }
 
     /**
      * @dataProvider typeDataProvider
      *
-     * @param $val
-     * @param $availableMethods
-     *
-     * @covers ::bool
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::get
-     * @covers ::scalar
-     * @covers ::createGetterTypeException
+     * @param       $val
+     * @param array $availableMethods
      */
-    public function testBool($val, array $availableMethods) {
+    public function testBoolTypes($val, array $availableMethods)
+    {
         $this->runTypeTest($val, $availableMethods, 'bool');
     }
 
     /**
      * @dataProvider typeDataProvider
      *
-     * @param $val
-     * @param $availableMethods
-     *
-     * @covers ::array
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::get
-     * @covers ::scalar
-     * @covers ::createGetterTypeException
+     * @param       $val
+     * @param array $availableMethods
      */
-    public function testArray($val, array $availableMethods) {
+    public function testArray($val, array $availableMethods)
+    {
         $this->runTypeTest($val, $availableMethods, 'array');
     }
 
     /**
      * @dataProvider typeDataProvider
      *
-     * @param $val
-     * @param $availableMethods
-     *
-     * @covers ::arrayReflect
-     * @covers ::cast
-     * @covers ::__construct
-     * @covers ::array
-     * @covers ::get
-     * @covers ::createGetterTypeException
-     * @covers ::createLikeThis
-     * @covers ::setGetterTypeExceptionClass
+     * @param       $val
+     * @param array $availableMethods
      */
-    public function testArrayReflect($val, array $availableMethods) {
+    public function testArrayReflectTypes($val, array $availableMethods)
+    {
         $this->runTypeTest($val, $availableMethods, 'arrayReflect');
     }
 
@@ -421,10 +357,11 @@ class ArrayReflectTest extends TestCase {
      * @param array $availableMethods
      * @param       $method
      */
-    private function runTypeTest($arrval, array $availableMethods, $method) {
+    private function runTypeTest($arrval, array $availableMethods, $method)
+    {
         $reflect = ArrayReflect::cast([$arrval]);
 
-        $val = $e = null;
+        $val = null;
         $isgood = in_array($method, $availableMethods);
         try {
             $val = $reflect->$method('0');
@@ -442,13 +379,16 @@ class ArrayReflectTest extends TestCase {
         }
     }
 
-    public static function baseTestArray(): array {
+    public static function baseTestArray(): array
+    {
         return [
             'key1' => 'val1',
             'key2' => 'val2',
             'key3' => 3,
             'key4' => true,
             'key5' => null,
+            'key5.5' => 5.5,
+            'space' => ' ',
             'i0',
             'i1',
             'node1' => [
